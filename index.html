@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pl" data-theme="dark">
 <head>
@@ -850,10 +851,14 @@ async function drivePost(path, body) { return apiPost(DRIVE+'/'+path, body); }
 async function drivePatch(path, body) { return apiPatch(DRIVE+'/'+path, body); }
 
 // ═══ DRIVE OPS ═══════════════════════════════
-async function createFolder(name) { return drivePost('files',{name:name,mimeType:'application/vnd.google-apps.folder'}); }
+async function createFolder(name) {
+  // parents:['root'] — folder trafia na osobisty "Mój dysk", nie na dysk organizacji
+  return drivePost('files',{name:name,mimeType:'application/vnd.google-apps.folder',parents:['root']});
+}
 async function listFolders() {
-  var q = encodeURIComponent("mimeType='application/vnd.google-apps.folder' and trashed=false");
-  var r = await driveGet('files?q='+q+'&fields=files(id,name)&pageSize=50&orderBy=name');
+  // 'me' in owners — pokazuje tylko foldery z osobistego dysku użytkownika
+  var q = encodeURIComponent("mimeType='application/vnd.google-apps.folder' and trashed=false and 'me' in owners");
+  var r = await driveGet('files?q='+q+'&fields=files(id,name)&pageSize=50&orderBy=name&corpora=user');
   return r.files||[];
 }
 async function moveFileTo(fileId, parentId) {
